@@ -1,0 +1,16 @@
+{
+  "timestamp": "2026-09-14T12:09:35.424",
+  "raw_data_file": "run_20260914_120935_423.csv",
+  "os": "windows",
+  "architecture": "x86_64",
+  "result_directory": "windows-x86_64",
+  "cpu_model": "unavailable",
+  "hardware_concurrency": 12,
+  "compiler": "GNU",
+  "compiler_version": "16.1.0",
+  "cxx_standard": "C++17",
+  "build_type": "Release",
+  "compiler_flags": "-O2 -fno-tree-vectorize -fno-tree-slp-vectorize -fno-unroll-loops -fno-fast-math",
+  "git_commit": "62090c20c93a10f1546b332d285ac4173de6f94a",
+  "benchmark_version": "1.0.0"
+}

@@ -1,6 +1,0 @@
-timestamp,platform,arch,benchmark,variant,size,threads,run,time_ms,metric,metric_name,checksum
-"2026-09-14T10:19:46.369","macos","arm64","matrix","serial",32,1,1,0.015000,4.3690666667,"gflops",982504
-"2026-09-14T10:19:46.370","macos","arm64","matrix","parallel",32,2,1,0.049125,1.3340661578,"gflops",982504
-"2026-09-14T10:19:46.370","macos","arm64","matrix","parallel",32,4,1,0.062625,1.0464830339,"gflops",982504
-"2026-09-14T10:19:46.370","macos","arm64","matrix","parallel",32,8,1,0.107375,0.6103469150,"gflops",982504
-"2026-09-14T10:19:46.370","macos","arm64","matrix","parallel",32,10,1,0.111625,0.5871086226,"gflops",982504

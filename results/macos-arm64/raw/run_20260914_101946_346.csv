@@ -1,2 +1,0 @@
-timestamp,platform,arch,benchmark,variant,size,threads,run,time_ms,metric,metric_name,checksum
-"2026-09-14T10:19:46.347","macos","arm64","sieve","eratosthenes",1000,1,1,0.000834,0.0000000000,"none",168

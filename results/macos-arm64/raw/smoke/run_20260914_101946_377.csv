@@ -1,0 +1,3 @@
+timestamp,platform,arch,benchmark,variant,size,threads,run,time_ms,metric,metric_name,checksum
+"2026-09-14T10:19:46.381","macos","arm64","memory","sequential",32768,1,1,1.502500,2791.5500831947,"million_accesses_per_s",9028324770158080
+"2026-09-14T10:19:46.412","macos","arm64","memory","random",32768,1,1,1.128750,3715.8839424142,"million_accesses_per_s",9027807706507324

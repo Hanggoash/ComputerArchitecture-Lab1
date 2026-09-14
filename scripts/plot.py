@@ -139,24 +139,26 @@ def memory_performance(summaries: dict[str, pd.DataFrame], output: Path) -> None
 
 
 def overall_comparison(output: Path) -> None:
-    figure, axis = plt.subplots(figsize=(9, 5))
     path = ROOT / "results" / "comparison" / "summary" / "comparison.csv"
     comparison = pd.read_csv(path) if path.exists() else pd.DataFrame()
     if comparison.empty or "speedup_m5" not in comparison:
+        figure, _ = plt.subplots(figsize=(9, 5))
         save_or_skip(figure, output / "relative_performance.png", False)
         return
     rows = comparison.copy()
     rows["label"] = rows.apply(
         lambda row: f"{BENCHMARK_LABELS.get(row['benchmark'], row['benchmark'])}:"
                     f"{VARIANT_LABELS.get(row['variant'], row['variant'])}\n"
-                    f"{int(row['size'])}，线程={int(row['threads'])}",
+        f"{int(row['size'])}，线程={int(row['threads'])}",
         axis=1,
     )
-    axis.bar(range(len(rows)), rows["speedup_m5"], color="#4C78A8")
-    axis.axhline(1.0, color="black", linewidth=1)
-    axis.set_xticks(range(len(rows)), rows["label"], rotation=60, ha="right")
-    axis.set(ylabel="M5 相对性能 = T(i5-12400F) / T(M5)", title="不同测试负载的相对性能")
-    axis.grid(True, axis="y", alpha=0.3)
+    figure, axis = plt.subplots(figsize=(11, max(8, len(rows) * 0.38)))
+    axis.barh(range(len(rows)), rows["speedup_m5"], color="#4C78A8")
+    axis.axvline(1.0, color="black", linewidth=1)
+    axis.set_yticks(range(len(rows)), rows["label"], fontsize=8)
+    axis.invert_yaxis()
+    axis.set(xlabel="M5 相对性能 = T(i5-12400F) / T(M5)", ylabel="测试配置", title="不同测试负载的相对性能")
+    axis.grid(True, axis="x", alpha=0.3)
     save_or_skip(figure, output / "relative_performance.png", True)
 
 

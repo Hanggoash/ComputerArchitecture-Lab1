@@ -15,7 +15,6 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 PLATFORM_KEYS = ("macos-arm64", "windows-x86_64")
 PLATFORM_LABELS = {"macos-arm64": "Apple M5（macOS/ARM64）", "windows-x86_64": "Intel Core i5-12400F（Windows/x86-64）"}
-BENCHMARK_LABELS = {"sieve": "筛法", "quicksort": "快速排序", "matrix": "矩阵乘法", "memory": "内存访问"}
 VARIANT_LABELS = {
     "sequential": "顺序访问",
     "random": "随机访问",
@@ -87,6 +86,40 @@ def matrix_gflops(summaries: dict[str, pd.DataFrame], output: Path) -> None:
     save_or_skip(figure, output / "matrix_gflops.png", has_data)
 
 
+def problem_size_comparison(
+    summaries: dict[str, pd.DataFrame],
+    output: Path,
+    benchmark: str,
+    xlabel: str,
+    title: str,
+    filename: str,
+) -> None:
+    """Plot mean ± standard deviation for one scalar problem-size sweep."""
+    figure, axis = plt.subplots(figsize=(7, 4.5))
+    has_data = False
+    for key, summary in summaries.items():
+        if summary.empty:
+            continue
+        rows = summary[summary["benchmark"] == benchmark].sort_values("size")
+        if rows.empty:
+            continue
+        axis.errorbar(
+            rows["size"],
+            rows["time_mean_ms"],
+            yerr=rows["time_std_ms"].fillna(0),
+            marker="o",
+            capsize=3,
+            label=PLATFORM_LABELS[key],
+        )
+        has_data = True
+    axis.set_xscale("log")
+    axis.set(xlabel=xlabel, ylabel="平均执行时间（ms）", title=title)
+    axis.grid(True, which="both", alpha=0.3)
+    if has_data:
+        axis.legend()
+    save_or_skip(figure, output / filename, has_data)
+
+
 def scaling(summaries: dict[str, pd.DataFrame], output: Path, column: str, ylabel: str, filename: str) -> None:
     figure, axis = plt.subplots(figsize=(7, 4.5))
     has_data = False
@@ -138,40 +171,32 @@ def memory_performance(summaries: dict[str, pd.DataFrame], output: Path) -> None
     save_or_skip(figure, output / "memory_performance.png", has_data)
 
 
-def overall_comparison(output: Path) -> None:
-    path = ROOT / "results" / "comparison" / "summary" / "comparison.csv"
-    comparison = pd.read_csv(path) if path.exists() else pd.DataFrame()
-    if comparison.empty or "speedup_m5" not in comparison:
-        figure, _ = plt.subplots(figsize=(9, 5))
-        save_or_skip(figure, output / "relative_performance.png", False)
-        return
-    rows = comparison.copy()
-    rows["label"] = rows.apply(
-        lambda row: f"{BENCHMARK_LABELS.get(row['benchmark'], row['benchmark'])}:"
-                    f"{VARIANT_LABELS.get(row['variant'], row['variant'])}\n"
-        f"{int(row['size'])}，线程={int(row['threads'])}",
-        axis=1,
-    )
-    figure, axis = plt.subplots(figsize=(11, max(8, len(rows) * 0.38)))
-    axis.barh(range(len(rows)), rows["speedup_m5"], color="#4C78A8")
-    axis.axvline(1.0, color="black", linewidth=1)
-    axis.set_yticks(range(len(rows)), rows["label"], fontsize=8)
-    axis.invert_yaxis()
-    axis.set(xlabel="M5 相对性能 = T(i5-12400F) / T(M5)", ylabel="测试配置", title="不同测试负载的相对性能")
-    axis.grid(True, axis="x", alpha=0.3)
-    save_or_skip(figure, output / "relative_performance.png", True)
+def remove_obsolete_outputs(output: Path) -> None:
+    """Keep the figure directory aligned with the report-oriented filenames."""
+    for filename in (
+        "relative_performance.png",
+        "matrix_multicore_speedup.png",
+        "matrix_parallel_efficiency.png",
+        "overall_speedup.png",
+    ):
+        path = output / filename
+        if path.exists():
+            path.unlink()
+            print(f"Removed obsolete {path}")
 
 
 def main() -> None:
     output = ROOT / "results" / "comparison" / "figures"
     output.mkdir(parents=True, exist_ok=True)
     summaries = load_summaries()
+    remove_obsolete_outputs(output)
+    problem_size_comparison(summaries, output, "sieve", "筛选上限（对数坐标）", "筛法执行时间", "sieve_comparison.png")
+    problem_size_comparison(summaries, output, "quicksort", "元素数量（对数坐标）", "快速排序执行时间", "quicksort_comparison.png")
     matrix_time(summaries, output)
     matrix_gflops(summaries, output)
-    scaling(summaries, output, "speedup", "加速比", "matrix_multicore_speedup.png")
-    scaling(summaries, output, "parallel_efficiency", "并行效率", "matrix_parallel_efficiency.png")
+    scaling(summaries, output, "speedup", "加速比", "multicore_speedup.png")
+    scaling(summaries, output, "parallel_efficiency", "并行效率", "parallel_efficiency.png")
     memory_performance(summaries, output)
-    overall_comparison(output)
 
 
 if __name__ == "__main__":

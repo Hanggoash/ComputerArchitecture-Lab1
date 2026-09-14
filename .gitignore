@@ -8,3 +8,5 @@ build/
 *.o
 __pycache__/
 *.py[cod]
+AGENTS.md
+STATE.md

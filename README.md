@@ -149,8 +149,23 @@ results/
 ├── macos-arm64/summary/summary.csv
 ├── windows-x86_64/summary/summary.csv
 └── comparison/
-    ├── summary/comparison.csv
+    ├── summary/
+    │   ├── sieve_comparison.csv
+    │   ├── quicksort_comparison.csv
+    │   ├── matrix_single_comparison.csv
+    │   ├── matrix_multi_comparison.csv
+    │   ├── memory_comparison.csv
+    │   └── overall_comparison.csv
     └── figures/
+        ├── sieve_comparison.png
+        ├── quicksort_comparison.png
+        ├── matrix_execution_time.png
+        ├── matrix_gflops.png
+        ├── multicore_speedup.png
+        ├── parallel_efficiency.png
+        └── memory_performance.png
+
+docs/report_tables.md
 ```
 
 每个 raw CSV 的一行对应一次正式重复，字段包含时间、平台、架构、benchmark、variant、size、threads、run、time、metric、metric 名称和 checksum。相邻 JSON 同时记录 OS、CPU 型号、硬件并发数、编译器、版本、C++ 标准、build type、精确 flags、Git commit 与 benchmark version。结果目录不在 `.gitignore` 中，应提交真实 raw 数据与分析产物；不要提交 `build/` 或 `.venv/`。
@@ -175,15 +190,15 @@ python scripts\plot.py
 
 `analyze.py` 只读取 raw CSV，不会修改或删除它们。它为相同平台、编译配置、benchmark、variant、size、threads 和 metric 汇总 mean、standard deviation、min、max、sample count 和平均 metric；对于矩阵还计算 `Speedup = T(1) / T(N)` 与 `Parallel Efficiency = Speedup / N`。
 
-当两平台都有匹配 workload 时，`results/comparison/summary/comparison.csv` 计算：
+当两平台都有匹配 workload 时，`results/comparison/summary/overall_comparison.csv` 计算：
 
 ```text
 Speedup_M5 = T_i5-12400F / T_M5
 ```
 
-大于 1 表示 M5 在该 workload 下更快，小于 1 表示 i5-12400F 更快。分析输出保留两边的编译配置，便于报告解释可能存在的工具链差异。
+大于 1 表示 M5 在该 workload 下更快，小于 1 表示 i5-12400F 更快。`analyze.py` 还按筛法、快速排序、单线程矩阵、多线程矩阵与内存访问分别输出 comparison CSV，并更新可直接复制到课程报告的 `docs/report_tables.md`。分析输出保留两边的编译配置，便于报告解释可能存在的工具链差异。
 
-`plot.py` 会生成：矩阵时间（mean ± standard deviation）、矩阵 GFLOPS、多核 speedup、并行效率、顺序/随机内存性能（工作集对数横轴）与跨平台相对性能图。缺少某一平台的数据时，相关跨平台图会明确跳过，不会伪造结果。
+`plot.py` 会生成：筛法与快速排序时间（mean ± standard deviation）、矩阵时间、矩阵 GFLOPS、多核 speedup、并行效率，以及顺序/随机内存性能（工作集对数横轴）。缺少某一平台的数据时，相关跨平台图会明确跳过，不会伪造结果。
 
 ## 推荐 Git 工作流
 

@@ -14,7 +14,21 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 PLATFORM_KEYS = ("macos-arm64", "windows-x86_64")
-PLATFORM_LABELS = {"macos-arm64": "Apple M5 (macOS/ARM64)", "windows-x86_64": "Intel Core i5-12400F (Windows/x86-64)"}
+PLATFORM_LABELS = {"macos-arm64": "Apple M5（macOS/ARM64）", "windows-x86_64": "Intel Core i5-12400F（Windows/x86-64）"}
+BENCHMARK_LABELS = {"sieve": "筛法", "quicksort": "快速排序", "matrix": "矩阵乘法", "memory": "内存访问"}
+VARIANT_LABELS = {
+    "sequential": "顺序访问",
+    "random": "随机访问",
+    "serial": "单线程",
+    "parallel": "多线程",
+    "eratosthenes": "埃拉托斯特尼筛法",
+    "hoare": "Hoare 快速排序",
+}
+
+# PingFang SC ships with macOS. The later fallbacks also cover common Windows
+# and Linux environments, preserving Chinese labels across both test hosts.
+plt.rcParams["font.sans-serif"] = ["PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "SimHei", "DejaVu Sans"]
+plt.rcParams["axes.unicode_minus"] = False
 
 
 def load_summaries() -> dict[str, pd.DataFrame]:
@@ -47,7 +61,7 @@ def matrix_time(summaries: dict[str, pd.DataFrame], output: Path) -> None:
         axis.errorbar(rows["size"], rows["time_mean_ms"], yerr=rows["time_std_ms"].fillna(0), marker="o", capsize=3,
                       label=PLATFORM_LABELS[key])
         has_data = True
-    axis.set(xlabel="Matrix dimension N", ylabel="Mean execution time (ms)", title="Matrix multiplication execution time")
+    axis.set(xlabel="矩阵维度 N", ylabel="平均执行时间（ms）", title="矩阵乘法执行时间")
     axis.grid(True, alpha=0.3)
     if has_data:
         axis.legend()
@@ -66,7 +80,7 @@ def matrix_gflops(summaries: dict[str, pd.DataFrame], output: Path) -> None:
         axis.errorbar(rows["size"], rows["metric_mean"], yerr=rows["metric_std"].fillna(0), marker="o", capsize=3,
                       label=PLATFORM_LABELS[key])
         has_data = True
-    axis.set(xlabel="Matrix dimension N", ylabel="GFLOPS", title="Matrix multiplication throughput")
+    axis.set(xlabel="矩阵维度 N", ylabel="GFLOPS", title="矩阵乘法浮点性能")
     axis.grid(True, alpha=0.3)
     if has_data:
         axis.legend()
@@ -94,8 +108,9 @@ def scaling(summaries: dict[str, pd.DataFrame], output: Path, column: str, ylabe
         largest_thread = max(largest_thread, int(rows["threads"].max()))
         has_data = True
     if column == "speedup":
-        axis.plot([1, largest_thread], [1, largest_thread], "k--", label="Ideal speedup")
-    axis.set(xlabel="Thread count", ylabel=ylabel, title=ylabel + " for matrix multiplication")
+        axis.plot([1, largest_thread], [1, largest_thread], "k--", label="理想加速比")
+    title = "矩阵乘法多核加速比" if column == "speedup" else "矩阵乘法并行效率"
+    axis.set(xlabel="线程数", ylabel=ylabel, title=title)
     axis.grid(True, alpha=0.3)
     if has_data:
         axis.legend()
@@ -112,10 +127,11 @@ def memory_performance(summaries: dict[str, pd.DataFrame], output: Path) -> None
             rows = summary[(summary["benchmark"] == "memory") & (summary["variant"] == variant)].sort_values("size")
             if rows.empty:
                 continue
-            axis.plot(rows["size"], rows["metric_mean"], style, marker="o", label=f"{PLATFORM_LABELS[key]} — {variant}")
+            axis.plot(rows["size"], rows["metric_mean"], style, marker="o",
+                      label=f"{PLATFORM_LABELS[key]} — {VARIANT_LABELS[variant]}")
             has_data = True
     axis.set_xscale("log", base=2)
-    axis.set(xlabel="Working set (bytes, log scale)", ylabel="Million accesses / second", title="Memory access performance")
+    axis.set(xlabel="工作集大小（字节，对数坐标）", ylabel="百万次访问 / 秒", title="内存访问性能")
     axis.grid(True, which="both", alpha=0.3)
     if has_data:
         axis.legend(fontsize=8)
@@ -130,11 +146,16 @@ def overall_comparison(output: Path) -> None:
         save_or_skip(figure, output / "relative_performance.png", False)
         return
     rows = comparison.copy()
-    rows["label"] = rows.apply(lambda row: f"{row['benchmark']}:{row['variant']}\n{int(row['size'])}, t={int(row['threads'])}", axis=1)
+    rows["label"] = rows.apply(
+        lambda row: f"{BENCHMARK_LABELS.get(row['benchmark'], row['benchmark'])}:"
+                    f"{VARIANT_LABELS.get(row['variant'], row['variant'])}\n"
+                    f"{int(row['size'])}，线程={int(row['threads'])}",
+        axis=1,
+    )
     axis.bar(range(len(rows)), rows["speedup_m5"], color="#4C78A8")
     axis.axhline(1.0, color="black", linewidth=1)
     axis.set_xticks(range(len(rows)), rows["label"], rotation=60, ha="right")
-    axis.set(ylabel="Speedup of M5 = T(i5-12400F) / T(M5)", title="Relative performance by workload")
+    axis.set(ylabel="M5 相对性能 = T(i5-12400F) / T(M5)", title="不同测试负载的相对性能")
     axis.grid(True, axis="y", alpha=0.3)
     save_or_skip(figure, output / "relative_performance.png", True)
 
@@ -145,8 +166,8 @@ def main() -> None:
     summaries = load_summaries()
     matrix_time(summaries, output)
     matrix_gflops(summaries, output)
-    scaling(summaries, output, "speedup", "Speedup", "matrix_multicore_speedup.png")
-    scaling(summaries, output, "parallel_efficiency", "Parallel efficiency", "matrix_parallel_efficiency.png")
+    scaling(summaries, output, "speedup", "加速比", "matrix_multicore_speedup.png")
+    scaling(summaries, output, "parallel_efficiency", "并行效率", "matrix_parallel_efficiency.png")
     memory_performance(summaries, output)
     overall_comparison(output)
 

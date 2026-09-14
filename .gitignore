@@ -1,0 +1,10 @@
+build/
+.venv/
+.vscode/
+.idea/
+.DS_Store
+*.exe
+*.obj
+*.o
+__pycache__/
+*.py[cod]

@@ -1,0 +1,16 @@
+{
+  "timestamp": "2026-09-14T10:19:46.360",
+  "raw_data_file": "run_20260914_101946_359.csv",
+  "os": "macos",
+  "architecture": "arm64",
+  "result_directory": "macos-arm64",
+  "cpu_model": "Apple M5",
+  "hardware_concurrency": 10,
+  "compiler": "AppleClang",
+  "compiler_version": "21.0.0.21000101",
+  "cxx_standard": "C++17",
+  "build_type": "Release",
+  "compiler_flags": "-O2 -fno-vectorize -fno-slp-vectorize -fno-unroll-loops -fno-fast-math",
+  "git_commit": "unavailable",
+  "benchmark_version": "1.0.0"
+}

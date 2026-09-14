@@ -12,6 +12,22 @@
 - 每项测试默认预热 1 次、正式重复 5 次。初始化、随机数据生成、输入复制、校验、CSV 写入和日志均不计入核心计时。
 - ARM64 与 x86-64 最终执行的机器指令必然不同。本实验比较的是在规定源代码、workload、编译策略和操作系统下，Apple M5 与 i5-12400F 的实际 CPU 表现；不能据此泛化为“ARM 优于 x86”或相反。
 
+## 克隆仓库
+
+Windows 端在 PowerShell 中直接执行：
+
+```powershell
+git clone https://github.com/Hanggoash/Lab1.git
+Set-Location Lab1
+```
+
+macOS 端可执行：
+
+```bash
+git clone https://github.com/Hanggoash/Lab1.git
+cd Lab1
+```
+
 ## 依赖
 
 - Git（用于同步代码和记录提交版本）
